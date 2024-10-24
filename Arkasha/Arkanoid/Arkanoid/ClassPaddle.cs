@@ -1,4 +1,4 @@
-﻿public class ClassClassPaddle
+﻿public class Paddle
 {
     public int X { get; set; }
     public int Width { get; set; } = 100;

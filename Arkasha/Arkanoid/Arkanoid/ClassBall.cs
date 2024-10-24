@@ -14,6 +14,7 @@ public class Ball
         Y += YSpeed;
     }
 
+
     
     public Rectangle GetRectangle()
     {

@@ -9,17 +9,19 @@ namespace Arkanoid
     public partial class Form1 : Form
     {
         private Ball ball;
-        private ClassClassPaddle ClassClassPaddle;
-        private List<Block> blocks; 
+        private Paddle paddle;
+        private List<Block> blocks;
+        
+        private int score = 0;
+        private int lives = 3; 
 
         public Form1()
         {
             InitializeComponent();
             InitializeGame();
             ball = new Ball { X = 200, Y = 200 };
-            ClassClassPaddle = new ClassClassPaddle { X = 150 };
-
-            // Создаем блоки
+            paddle = new Paddle { X = 150 };
+            
             CreateBlocks();
 
             gameTimer.Tick += GameLoop;
@@ -29,7 +31,7 @@ namespace Arkanoid
         private void InitializeGame()
         {
             ball = new Ball { X = 200, Y = 200 };
-            ClassClassPaddle = new ClassClassPaddle { X = 150 };
+            paddle = new Paddle { X = 150 };
             gameTimer.Tick += GameLoop;
         }
 
@@ -48,26 +50,26 @@ namespace Arkanoid
         protected override void OnShown(EventArgs e)
         {
             base.OnShown(e);
-            CenterCursorOnClassClassPaddle(); 
+            CenterCursorOnPaddle(); 
         }
 
         protected override void OnMouseEnter(EventArgs e)
         {
             base.OnMouseEnter(e);
-            CenterCursorOnClassClassPaddle(); 
+            CenterCursorOnPaddle(); 
         }
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
             
-            ClassClassPaddle.X = e.X - (ClassClassPaddle.Width / 2);
+            paddle.X = e.X - (paddle.Width / 2);
             Invalidate(); 
         }
 
-        private void CenterCursorOnClassClassPaddle()
+        private void CenterCursorOnPaddle()
         {
-            int cursorX = ClassClassPaddle.X + (ClassClassPaddle.Width / 2);
-            int cursorY = this.ClientSize.Height - ClassClassPaddle.Height / 2; 
+            int cursorX = paddle.X + (paddle.Width / 2);
+            int cursorY = this.ClientSize.Height - paddle.Height / 2; 
             Cursor.Position = this.PointToScreen(new Point(cursorX, cursorY));
         }
 
@@ -95,40 +97,121 @@ namespace Arkanoid
 
         private void CheckCollision()
         {
-            // Проверка границ
             if (ball.X <= 0 || ball.X >= this.ClientSize.Width - ball.Radius * 2)
-
                 ball.XSpeed *= -1;
             if (ball.Y <= 0)
                 ball.YSpeed *= -1;
-            if (ball.Y >= this.ClientSize.Height)
-                ResetBall();
 
-            // Проверка столкновения с ракеткой
-            if (ball.Y + ball.Radius * 2 >= this.ClientSize.Height - ClassClassPaddle.Height &&
-                ball.X + ball.Radius * 2 >= ClassClassPaddle.X &&
-                ball.X <= ClassClassPaddle.X + ClassClassPaddle.Width)
+            if (ball.Y >= this.ClientSize.Height)
+            {
+                gameTimer.Stop(); 
+                UpdatePokaLive(); 
+                //return;
+            }
+
+            if (ball.Y + ball.Radius * 2 >= this.ClientSize.Height - paddle.Height &&
+                ball.X + ball.Radius * 2 >= paddle.X &&
+                ball.X <= paddle.X + paddle.Width)
             {
                 ball.YSpeed *= -1;
             }
+        }
+
+        private void UpdatePokaLive()
+        {
+            lives--;
+
+            if (lives <= 0)
+            { ShowGameOverMessage(); }
+            else
+            { ResetBall();}
+        }
+        private void ShowGameOverMessage()
+        {
+            var result = MessageBox.Show("Вы проиграли! Хотите начать заново?", "Игра окончена",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+
+            if (result == DialogResult.Yes)
+            { ResetGame(); }
+            else
+            { Application.Exit(); }
+        }
+
+        private void ResetGame()
+        {
+            ball.X = this.ClientSize.Width / 2; 
+            ball.Y = this.ClientSize.Height - 60; 
+            ball.XSpeed = 5; 
+            ball.YSpeed = -5; 
+
+            score = 0;
+            lives = 3;
+
+            CreateBlocks();
+
+            gameTimer.Start(); 
+        }
+
+        private void UpdateGame()
+        {
+            ball.Move();
+
+            CheckCollision();
+            CheckBlockCollision();            
         }
 
         private void CheckBlockCollision()
         {
-            foreach (var block in blocks.ToList()) // Используем ToList для изменения коллекции во время итерации
+            foreach (var block in blocks.ToList()) 
             {
                 if (block.IsActive && ball.GetRectangle().IntersectsWith(block.GetRectangle()))
                 {
+                    block.HitPoints--; 
+                    block.Color = Color.LightGreen; 
+
+                    if (block.HitPoints <= 0)
+                    {
+                        block.IsActive = false; 
+                        score++; 
+                    }
+
                     ball.YSpeed *= -1;
-                    block.IsActive = false; // Деактивируем блок при столкновении
+
+                    if (AreAllBlocksDestroyed())
+                    {
+                        ShowVictoryMessage(); 
+                    }
                 }
             }
         }
 
+        private void ShowVictoryMessage()
+        {
+            gameTimer.Stop();
+
+            var result = MessageBox.Show($"Поздравляем! Вы выиграли!\nВаш счет: {score}", "Победа", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+
+            if (result == DialogResult.Yes)
+            {
+                ResetGame();
+            }
+            else
+            {
+                Application.Exit();
+            }
+        }
+
+
+        private bool AreAllBlocksDestroyed()
+        {
+            return blocks.All(block => !block.IsActive);
+        }
+
+
         private void ResetBall()
         {
-            ball.X = this.ClientSize.Width / 2;
-            ball.Y = this.ClientSize.Height / 2;
+            ball.X = this.ClientSize.Width / 2; 
+            ball.Y = this.ClientSize.Height - 60;
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -136,16 +219,21 @@ namespace Arkanoid
             base.OnPaint(e);
 
             e.Graphics.FillEllipse(Brushes.Red, ball.X, ball.Y, ball.Radius * 2, ball.Radius * 2);
-            e.Graphics.FillRectangle(Brushes.Blue, ClassClassPaddle.X, this.ClientSize.Height - ClassClassPaddle.Height, ClassClassPaddle.Width, ClassClassPaddle.Height);
-
-            // Рисуем блоки
+            e.Graphics.FillRectangle(Brushes.Blue, paddle.X, this.ClientSize.Height - paddle.Height, paddle.Width, paddle.Height);
+            
             foreach (var block in blocks)
             {
                 if (block.IsActive)
                 {
-                    e.Graphics.FillRectangle(Brushes.Green, block.GetRectangle());
+                    using (Brush brush = new SolidBrush(block.Color))
+                    {
+                        e.Graphics.FillRectangle(brush, block.GetRectangle());
+                    }
                 }
             }
+ 
+            e.Graphics.DrawString($"Счет: {score}", new Font("Arial", 16), Brushes.Black, new Point(10, 10));
+            e.Graphics.DrawString($"Жизни: {lives}", new Font("Arial", 16), Brushes.Black, new Point(150, 10));
         }
     }
 }
