@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // Общие сведения об этой сборке предоставляются следующим набором
 // набора атрибутов. Измените значения этих атрибутов для изменения сведений,
 // связанных со сборкой.
-[assembly: AssemblyTitle("arconoid")]
+[assembly: AssemblyTitle("Arkanoid")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("arconoid")]
+[assembly: AssemblyProduct("Arkanoid")]
 [assembly: AssemblyCopyright("Copyright ©  2024")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // Следующий GUID служит для идентификации библиотеки типов, если этот проект будет видимым для COM
-[assembly: Guid("a865498c-30be-4396-a3c3-67bc022d9c4a")]
+[assembly: Guid("2f2ff5c2-89c9-4c88-9e3d-afcf15105dad")]
 
 // Сведения о версии сборки состоят из указанных ниже четырех значений:
 //
