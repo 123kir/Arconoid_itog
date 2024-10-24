@@ -189,7 +189,7 @@ namespace Arkanoid
         {
             gameTimer.Stop();
 
-            var result = MessageBox.Show($"Поздравляем! Вы выиграли!\nВаш счет: {score}", "Победа", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+            var result = MessageBox.Show($"Поздравляем! Вы выиграли!\nВаш счет: {score}. Хотите начать заново?", "Победа", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
 
             if (result == DialogResult.Yes)
             {
